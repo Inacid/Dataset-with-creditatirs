@@ -1,0 +1,50 @@
+import numpy as np
+import pandas as pd
+
+np.random.seed(42)
+
+n_samples = 1500
+
+age = np.random.normal(loc=40, scale=12, size=n_samples).astype(int)
+age = np.clip(age, 18, 70)
+
+gender = np.random.choice(['Мужской', 'Женский'], size=n_samples, p=[0.55, 0.45])
+
+income = np.random.lognormal(mean=10, sigma=0.5, size=n_samples) / 1000
+income = np.round(income, 2)
+
+num_loans = np.random.poisson(lam=1.2, size=n_samples)
+num_loans = np.clip(num_loans, 0, 5)
+
+marital_status = np.random.choice(['Не женат/Не замужем', 'Женат/Замужем', 'Разведён/Разведена', 'Вдовец/Вдова'], size=n_samples, p=[0.3, 0.5, 0.15, 0.05])
+
+education = np.random.choice(['Среднее', 'Высшее', 'Неоконченное высшее', 'Ученая степень'], size=n_samples, p=[0.4, 0.45, 0.1, 0.05])
+
+real_estate = np.random.choice(['Да', 'Нет'], size=n_samples, p=[0.65, 0.35])
+
+target = (
+    (age > 25).astype(int) +
+    (income > 40).astype(int) +
+    (num_loans <= 2).astype(int) +
+    (real_estate == 'Да').astype(int)
+)
+
+target = (target >= 3).astype(int)
+
+df = pd.DataFrame({
+    'Возраст': age,
+    'Пол': gender,
+    'Доход_тыс': income,
+    'Количество_кредитов': num_loans,
+    'Семейное_положение': marital_status,
+    'Образование': education,
+    'Недвижимость': real_estate,
+    'Надежность': target
+})
+
+for col in ['Доход_тыс', 'Образование']:
+    df.loc[df.sample(frac=0.05).index, col] = np.nan
+
+df.to_csv('credit_scoring_dataset.csv', index=False)
+
+print(df.head())
